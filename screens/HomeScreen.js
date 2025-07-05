@@ -18,6 +18,8 @@ function HomeScreen() {
     const [pokemons, setPokemons] = useState([]);
     const [favorites, setFavorites] = useState({});
     const [darkMode, setDarkMode] = useState(false);
+    const [currentPage, setCurrentPage] = useState(0);
+    const PAGE_SIZE = 50;
 
     useEffect(() => {
         const formattedPokemons = pokemonData.pokemon_entries.map((entry) => ({
@@ -81,10 +83,7 @@ function HomeScreen() {
         return (
             <View style={styles.item}>
                 <Pressable
-                    style={[
-                        styles.detailButton,
-                        darkMode && styles.detailButtonDark
-                    ]}
+                    style={[styles.detailButton, darkMode && styles.detailButtonDark]}
                     onPress={() => navigation.navigate('DetailsPokemon', { item, darkMode })}
                 >
                     <Text style={[styles.text, darkMode && styles.textDark]}>#{item.id}</Text>
@@ -93,14 +92,17 @@ function HomeScreen() {
                         <Text style={[styles.name, darkMode && styles.textDark]}>{item.name}</Text>
                     </View>
                 </Pressable>
+
                 <TouchableOpacity
                     onPress={() => toggleFavorite(item.id)}
                     style={styles.favoriteButton}
                 >
-                    <Text style={[
-                        styles.heart,
-                        isFavorite ? styles.heartFavorite : styles.heartNotFavorite
-                    ]}>
+                    <Text
+                        style={[
+                            styles.heart,
+                            isFavorite ? styles.heartFavorite : styles.heartNotFavorite,
+                        ]}
+                    >
                         {isFavorite ? '❤️' : '🤍'}
                     </Text>
                 </TouchableOpacity>
@@ -108,9 +110,24 @@ function HomeScreen() {
         );
     };
 
+    const totalPages = Math.ceil(pokemons.length / PAGE_SIZE);
+    const currentPokemons = pokemons.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
+
+    const nextPage = () => {
+        if (currentPage < totalPages - 1) {
+            setCurrentPage(prev => prev + 1);
+        }
+    };
+
+    const prevPage = () => {
+        if (currentPage > 0) {
+            setCurrentPage(prev => prev - 1);
+        }
+    };
+
     return (
         <View style={[styles.container, darkMode && styles.containerDark]}>
-            <NavBar darkMode={darkMode}/>
+            <NavBar darkMode={darkMode} />
 
             <Pressable
                 style={[styles.toggleButton, darkMode ? styles.darkToggle : styles.lightToggle]}
@@ -121,11 +138,32 @@ function HomeScreen() {
                 </Text>
             </Pressable>
 
+            {/* Pagination buttons above the list */}
+            <View style={styles.paginationContainer}>
+                <TouchableOpacity
+                    onPress={prevPage}
+                    disabled={currentPage === 1}
+                    style={[styles.pageButton, currentPage === 1 && styles.disabledButton]}
+                >
+                    <Text style={styles.pageButtonText}>Vorige</Text>
+                </TouchableOpacity>
+                <Text style={[styles.pageInfo, darkMode && styles.textDark]}>
+                    Pagina {currentPage} van {totalPages}
+                </Text>
+                <TouchableOpacity
+                    onPress={nextPage}
+                    disabled={currentPage === totalPages}
+                    style={[styles.pageButton, currentPage === totalPages && styles.disabledButton]}
+                >
+                    <Text style={styles.pageButtonText}>Volgende</Text>
+                </TouchableOpacity>
+            </View>
+
             <FlatList
-                data={pokemons}
+                data={currentPokemons}
                 renderItem={renderItem}
                 keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={styles.listContent}
             />
         </View>
     );
@@ -141,16 +179,12 @@ const styles = StyleSheet.create({
     containerDark: {
         backgroundColor: '#121212',
     },
-    title: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
     item: {
         flexDirection: 'row',
         alignItems: 'center',
         marginVertical: 4,
         marginHorizontal: 16,
+        width: '100%',
     },
     image: {
         width: 64,
@@ -179,20 +213,6 @@ const styles = StyleSheet.create({
     },
     detailButtonDark: {
         backgroundColor: '#880000',
-    },
-    mapButton: {
-        backgroundColor: 'blue',
-        padding: 10,
-        borderRadius: 10,
-        marginVertical: 10,
-        width: 150,
-    },
-    mapButtonDark: {
-        backgroundColor: '#4444aa',
-    },
-    mapText: {
-        color: 'white',
-        textAlign: 'center',
     },
     toggleButton: {
         padding: 10,
@@ -223,6 +243,39 @@ const styles = StyleSheet.create({
     heartNotFavorite: {
         color: 'gray',
     },
+
+    // Pagination styles
+    paginationContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        marginBottom: 10,
+        width: '100%',
+    },
+    pageButton: {
+        backgroundColor: '#007bff',
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+    },
+    disabledButton: {
+        backgroundColor: '#aaa',
+    },
+    pageButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+    pageInfo: {
+        fontSize: 16,
+        color: '#000',
+    },
+    listContent: {
+        paddingBottom: 60,
+        paddingHorizontal: 10,
+        width: '100%',
+    },
 });
+
 
 export default HomeScreen;
