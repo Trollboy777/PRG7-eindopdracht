@@ -81,28 +81,22 @@ function HomeScreen() {
     const renderItem = ({ item }) => {
         const isFavorite = favorites[item.id] === true;
         return (
-            <View style={styles.item}>
+            <View style={[styles.item, darkMode && styles.itemDark]}>
+                <Text style={[styles.numberText, darkMode && styles.textDark]}>{`#${item.id}`}</Text>
+
                 <Pressable
-                    style={[styles.detailButton, darkMode && styles.detailButtonDark]}
+                    style={styles.pressableContainer}
                     onPress={() => navigation.navigate('DetailsPokemon', { item, darkMode })}
                 >
-                    <Text style={[styles.text, darkMode && styles.textDark]}>#{item.id}</Text>
                     <Image source={{ uri: item.image }} style={styles.image} />
-                    <View style={styles.textContainer}>
-                        <Text style={[styles.name, darkMode && styles.textDark]}>{item.name}</Text>
-                    </View>
+                    <Text style={[styles.name, darkMode && styles.textDark]}>{item.name}</Text>
                 </Pressable>
 
                 <TouchableOpacity
                     onPress={() => toggleFavorite(item.id)}
                     style={styles.favoriteButton}
                 >
-                    <Text
-                        style={[
-                            styles.heart,
-                            isFavorite ? styles.heartFavorite : styles.heartNotFavorite,
-                        ]}
-                    >
+                    <Text style={[styles.heart, isFavorite ? styles.heartFavorite : styles.heartNotFavorite]}>
                         {isFavorite ? '❤️' : '🤍'}
                     </Text>
                 </TouchableOpacity>
@@ -179,16 +173,36 @@ const styles = StyleSheet.create({
     containerDark: {
         backgroundColor: '#121212',
     },
+    numberText: {
+        width: 40,
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#000',
+    },
     item: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginVertical: 4,
+        justifyContent: 'space-between',
+        marginVertical: 8,
         marginHorizontal: 16,
-        width: '100%',
+        paddingHorizontal: 10,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 10,
+    },
+    itemDark: {
+        backgroundColor: '#222',
+    },
+    pressableContainer: {
+        flexShrink: 1,
+        marginHorizontal: 10,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
     },
     image: {
-        width: 64,
-        height: 64,
+        width: 60,
+        height: 60,
+        resizeMode: 'contain',
     },
     textContainer: {
         marginLeft: 16,
@@ -231,11 +245,10 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     favoriteButton: {
-        marginLeft: 12,
-        padding: 8,
+        padding: 10,
     },
     heart: {
-        fontSize: 24,
+        fontSize: 28,
     },
     heartFavorite: {
         color: 'red',
