@@ -3,24 +3,24 @@ import {Text, View, StyleSheet, Image, Button, ScrollView} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 function DetailsPokemonScreen({route}) {
-    const {item} = route.params;
+    const {item,darkMode} = route.params;
     const navigation = useNavigation();
 
     return (
-        <ScrollView contentContainerStyle={styles.container}>
-            <Text style={styles.title}>{item.name.toUpperCase()}</Text>
-            <Image source={{uri: item.image}} style={styles.image} />
+        <ScrollView contentContainerStyle={[styles.container, darkMode && styles.containerDark]}>
+            <Text style={[styles.title, darkMode && styles.textDark]}>{item.name.toUpperCase()}</Text>
+            <Image source={{ uri: item.image }} style={styles.image} />
 
-            <Text style={styles.subText}>#{item.id}</Text>
-            <Text style={styles.subText}>Type: {item.types.join(', ')}</Text>
-            <Text style={styles.subText}>Height: {item.height / 10} m</Text>
-            <Text style={styles.subText}>Weight: {item.weight / 10} kg</Text>
+            <Text style={[styles.subText, darkMode && styles.textDark]}>#{item.id}</Text>
+            <Text style={[styles.subText, darkMode && styles.textDark]}>Type: {item.types.join(', ')}</Text>
+            <Text style={[styles.subText, darkMode && styles.textDark]}>Height: {item.height / 10} m</Text>
+            <Text style={[styles.subText, darkMode && styles.textDark]}>Weight: {item.weight / 10} kg</Text>
 
-            <Text style={styles.sectionTitle}>Stats</Text>
+            <Text style={[styles.sectionTitle, darkMode && styles.textDark]}>Stats</Text>
             {item.stats?.map((statObj, index) => (
                 <View key={index} style={styles.statRow}>
-                    <Text style={styles.statName}>{statObj.name.toUpperCase()}</Text>
-                    <Text style={styles.statValue}>{statObj.base_stat}</Text>
+                    <Text style={[styles.statName, darkMode && styles.textDark]}>{statObj.name.toUpperCase()}</Text>
+                    <Text style={[styles.statValue, darkMode && styles.textDark]}>{statObj.base_stat}</Text>
                 </View>
             ))}
 
@@ -71,5 +71,11 @@ const styles = StyleSheet.create({
     statValue: {
         fontSize: 16,
         fontWeight: '400',
+    },
+    containerDark: {
+        backgroundColor: '#121212',
+    },
+    textDark: {
+        color: '#fff',
     },
 });

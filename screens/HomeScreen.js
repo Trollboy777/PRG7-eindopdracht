@@ -11,6 +11,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import pokemonData from '../pokehotspots.json';
+import NavBar from "../components/NavBar";
 
 function HomeScreen() {
     const navigation = useNavigation();
@@ -84,7 +85,7 @@ function HomeScreen() {
                         styles.detailButton,
                         darkMode && styles.detailButtonDark
                     ]}
-                    onPress={() => navigation.navigate('DetailsPokemon', { item })}
+                    onPress={() => navigation.navigate('DetailsPokemon', { item, darkMode })}
                 >
                     <Text style={[styles.text, darkMode && styles.textDark]}>#{item.id}</Text>
                     <Image source={{ uri: item.image }} style={styles.image} />
@@ -109,14 +110,7 @@ function HomeScreen() {
 
     return (
         <View style={[styles.container, darkMode && styles.containerDark]}>
-            <Text style={[styles.title, darkMode && styles.textDark]}>Home Screen</Text>
-
-            <Pressable
-                style={[styles.mapButton, darkMode && styles.mapButtonDark]}
-                onPress={() => navigation.navigate('Gymleaders_map')}
-            >
-                <Text style={styles.mapText}>Open Gym Map</Text>
-            </Pressable>
+            <NavBar darkMode={darkMode}/>
 
             <Pressable
                 style={[styles.toggleButton, darkMode ? styles.darkToggle : styles.lightToggle]}

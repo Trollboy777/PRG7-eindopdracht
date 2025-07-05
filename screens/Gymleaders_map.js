@@ -1,31 +1,60 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, StyleSheet, Text, Alert } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
+import { useNavigation } from '@react-navigation/native';
+import { getDistance } from 'geolib';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import pokehotspots from '../pokehotspots.json';
-import {Alert} from "react-native";
-import {useNavigation} from "@react-navigation/native";
-import {getDistance} from "geolib";
+
+const darkMapStyle = [
+    { "elementType": "geometry", "stylers": [{ "color": "#242f3e" }] },
+    { "elementType": "labels.text.fill", "stylers": [{ "color": "#746855" }] },
+    { "elementType": "labels.text.stroke", "stylers": [{ "color": "#242f3e" }] },
+    { "featureType": "administrative.locality", "elementType": "labels.text.fill", "stylers": [{ "color": "#d59563" }] },
+    { "featureType": "poi", "elementType": "labels.text.fill", "stylers": [{ "color": "#d59563" }] },
+    { "featureType": "poi.park", "elementType": "geometry", "stylers": [{ "color": "#263c3f" }] },
+    { "featureType": "poi.park", "elementType": "labels.text.fill", "stylers": [{ "color": "#6b9a76" }] },
+    { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#38414e" }] },
+    { "featureType": "road", "elementType": "geometry.stroke", "stylers": [{ "color": "#212a37" }] },
+    { "featureType": "road", "elementType": "labels.text.fill", "stylers": [{ "color": "#9ca5b3" }] },
+    { "featureType": "road.highway", "elementType": "geometry", "stylers": [{ "color": "#746855" }] },
+    { "featureType": "road.highway", "elementType": "geometry.stroke", "stylers": [{ "color": "#1f2835" }] },
+    { "featureType": "road.highway", "elementType": "labels.text.fill", "stylers": [{ "color": "#f3d19c" }] },
+    { "featureType": "transit", "elementType": "geometry", "stylers": [{ "color": "#2f3948" }] },
+    { "featureType": "transit.station", "elementType": "labels.text.fill", "stylers": [{ "color": "#d59563" }] },
+    { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#17263c" }] },
+    { "featureType": "water", "elementType": "labels.text.fill", "stylers": [{ "color": "#515c6d" }] },
+    { "featureType": "water", "elementType": "labels.text.stroke", "stylers": [{ "color": "#17263c" }] }
+];
 
 function Gymleaders_map() {
     const [location, setLocation] = useState(null);
     const [errorMsg, setErrorMsg] = useState(null);
     const [history, setHistory] = useState([]);
     const [gymleaders, setGymleaders] = useState([]);
+    const [visitedGyms, setVisitedGyms] = useState([]);
+    const [darkMode, setDarkMode] = useState(false);
     const navigation = useNavigation();
-    const [visitedGyms, setVisitedGyms] = useState([])
-    const mapRef = React.useRef(null);
+    const mapRef = useRef(null);
 
     useEffect(() => {
-        // Gym data ophalen
+        const loadDarkMode = async () => {
+            try {
+                const value = await AsyncStorage.getItem('darkMode');
+                setDarkMode(value === 'true');
+            } catch (e) {
+                console.error('Fout bij laden dark mode', e);
+            }
+        };
+
         const gymArray = Object.entries(pokehotspots.gyms).map(([key, gym]) => ({
             id: key,
             ...gym,
         }));
-        console.log(gymArray);
         setGymleaders(gymArray);
 
-        async function getCurrentLocation() {
+        const getCurrentLocation = async () => {
             let { status } = await Location.requestForegroundPermissionsAsync();
             if (status !== 'granted') {
                 setErrorMsg('Locatietoestemming geweigerd');
@@ -37,15 +66,14 @@ function Gymleaders_map() {
                 (newLocation) => {
                     const { latitude, longitude } = newLocation.coords;
                     setLocation({ latitude, longitude });
+                    setHistory((prev) => [...prev, { latitude, longitude }]);
 
-                    setHistory((prev) => [...prev, { latitude, longitude }])
-
-                    gymArray.forEach(gym => {
+                    gymArray.forEach((gym) => {
                         if (gym.location?.latitude && gym.location?.longitude) {
                             const distance = getDistance(
                                 { latitude, longitude },
                                 { latitude: gym.location.latitude, longitude: gym.location.longitude }
-                            )
+                            );
                             if (distance < 50 && !visitedGyms.includes(gym.id)) {
                                 Alert.alert(
                                     'Gym nabij!',
@@ -55,22 +83,18 @@ function Gymleaders_map() {
                                             text: 'Ja',
                                             onPress: () => {
                                                 navigation.navigate('GymQuiz', {
-                                                    gymId: gym.id, questions: gym.questions, gym_badge: gym.gym_badge,
+                                                    gymId: gym.id,
+                                                    questions: gym.questions,
+                                                    gym_badge: gym.gym_badge,
                                                 });
-                                                setVisitedGyms((prev) => [
-                                                    ...prev,
-                                                    gym.id,
-                                                ]);
+                                                setVisitedGyms((prev) => [...prev, gym.id]);
                                             },
                                         },
                                         {
                                             text: 'Nee',
                                             style: 'cancel',
                                             onPress: () => {
-                                                setVisitedGyms((prev) => [
-                                                    ...prev,
-                                                    gym.id,
-                                                ]);
+                                                setVisitedGyms((prev) => [...prev, gym.id]);
                                             },
                                         },
                                     ]
@@ -80,18 +104,19 @@ function Gymleaders_map() {
                     });
                 }
             );
-        }
+        };
 
+        loadDarkMode();
         getCurrentLocation();
     }, []);
 
-    // Rendering van de MapView met de locatie van de gebruiker en gymleaders
     return (
         <View style={styles.container}>
-            {location && location.latitude && location.longitude ? (
+            {location ? (
                 <MapView
                     ref={mapRef}
                     style={styles.map}
+                    customMapStyle={darkMode ? darkMapStyle : []}
                     initialRegion={{
                         latitude: location.latitude,
                         longitude: location.longitude,
@@ -109,32 +134,25 @@ function Gymleaders_map() {
                         pinColor="red"
                     />
                     {gymleaders.map((gym, index) => (
-                        gym.location?.latitude && gym.location?.longitude ? (
-                            <Marker
-                                key={index}
-                                coordinate={{
-                                    latitude: gym.location.latitude,
-                                    longitude: gym.location.longitude,
-                                }}
-                                title={gym.leader}
-                                description={`Dit is de gym van ${gym.leader} en bevindt zich bij de ${gym.id}`}
-                                pinColor="blue"
-                            />
-                        ) : null
+                        <Marker
+                            key={index}
+                            coordinate={{
+                                latitude: gym.location.latitude,
+                                longitude: gym.location.longitude,
+                            }}
+                            title={gym.leader}
+                            description={`Dit is de gym van ${gym.leader} en bevindt zich bij de ${gym.id}`}
+                            pinColor="blue"
+                        />
                     ))}
-                    {history.map((location, index) => (
-                        location.latitude && location.longitude ? (
-                            <Marker
-                                key={index}
-                                coordinate={{
-                                    latitude: location.latitude,
-                                    longitude: location.longitude,
-                                }}
-                                title={`Locatie ${index + 1}`}
-                                description={`Pin nummer ${index + 1} is op ${location.latitude}, ${location.longitude}`}
-                                pinColor="green"
-                            />
-                        ) : null
+                    {history.map((loc, index) => (
+                        <Marker
+                            key={index}
+                            coordinate={loc}
+                            title={`Locatie ${index + 1}`}
+                            description={`Pin op ${loc.latitude}, ${loc.longitude}`}
+                            pinColor="green"
+                        />
                     ))}
                 </MapView>
             ) : (
