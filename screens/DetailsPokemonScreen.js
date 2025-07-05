@@ -1,81 +1,75 @@
 import React from 'react';
-import { Text, View, StyleSheet, Image, Pressable } from 'react-native';
+import {Text, View, StyleSheet, Image, Button, ScrollView} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-function DetailsPokemonScreen({ route }) {
-    const { item } = route.params;
+function DetailsPokemonScreen({route}) {
+    const {item} = route.params;
     const navigation = useNavigation();
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>#{item.id} {item.name.charAt(0).toUpperCase() + item.name.slice(1)}</Text>
+        <ScrollView contentContainerStyle={styles.container}>
+            <Text style={styles.title}>{item.name.toUpperCase()}</Text>
+            <Image source={{uri: item.image}} style={styles.image} />
 
-            <Image source={{ uri: item.image }} style={styles.image} />
+            <Text style={styles.subText}>#{item.id}</Text>
+            <Text style={styles.subText}>Type: {item.types.join(', ')}</Text>
+            <Text style={styles.subText}>Height: {item.height / 10} m</Text>
+            <Text style={styles.subText}>Weight: {item.weight / 10} kg</Text>
 
-            <View style={styles.infoBox}>
-                <Text style={styles.label}>Types:</Text>
-                <Text style={styles.value}>{item.types.join(', ')}</Text>
+            <Text style={styles.sectionTitle}>Stats</Text>
+            {item.stats?.map((statObj, index) => (
+                <View key={index} style={styles.statRow}>
+                    <Text style={styles.statName}>{statObj.name.toUpperCase()}</Text>
+                    <Text style={styles.statValue}>{statObj.base_stat}</Text>
+                </View>
+            ))}
 
-                <Text style={styles.label}>Height:</Text>
-                <Text style={styles.value}>{item.height / 10} m</Text>
-
-                <Text style={styles.label}>Weight:</Text>
-                <Text style={styles.value}>{item.weight / 10} kg</Text>
-            </View>
-
-            <Pressable style={styles.button} onPress={() => navigation.goBack()}>
-                <Text style={styles.buttonText}>Back</Text>
-            </Pressable>
-        </View>
+            <Button title="Back" onPress={() => navigation.goBack()} />
+        </ScrollView>
     );
 }
 
+export default DetailsPokemonScreen;
+
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        backgroundColor: '#f2f2f2',
-        alignItems: 'center',
-        justifyContent: 'center',
         padding: 20,
+        alignItems: 'center',
+        backgroundColor: '#f7f7f7',
     },
     title: {
-        fontSize: 24,
+        fontSize: 32,
         fontWeight: 'bold',
-        marginBottom: 16,
-        textTransform: 'capitalize',
+        marginBottom: 10,
+        textTransform: 'uppercase',
     },
     image: {
         width: 200,
         height: 200,
-        marginBottom: 20,
+        marginVertical: 20,
     },
-    infoBox: {
-        width: '100%',
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        padding: 20,
-        marginBottom: 20,
-        elevation: 3,
-    },
-    label: {
+    subText: {
         fontSize: 16,
+        marginBottom: 4,
+    },
+    sectionTitle: {
+        fontSize: 24,
         fontWeight: 'bold',
-        marginTop: 10,
+        marginTop: 20,
+        marginBottom: 10,
     },
-    value: {
+    statRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '60%',
+        marginVertical: 2,
+    },
+    statName: {
         fontSize: 16,
+        fontWeight: '600',
     },
-    button: {
-        backgroundColor: '#e63946',
-        paddingVertical: 10,
-        paddingHorizontal: 30,
-        borderRadius: 10,
-    },
-    buttonText: {
-        color: '#fff',
-        fontWeight: 'bold',
+    statValue: {
         fontSize: 16,
+        fontWeight: '400',
     },
 });
-
-export default DetailsPokemonScreen;
