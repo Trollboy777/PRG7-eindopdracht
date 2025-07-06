@@ -3,13 +3,15 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet, Linking } from 'rea
 import * as Location from 'expo-location';
 import pokehotspots from '../pokehotspots.json';
 import NavBar from "../components/NavBar";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useContext } from 'react';
+import { DarkModeContext } from '../DarkModeContext';
 
 function HotspotListScreen() {
     const [location, setLocation] = useState(null);
     const [errorMsg, setErrorMsg] = useState(null);
     const [hotspots, setHotspots] = useState([]);
-    const [darkMode, setDarkMode] = useState(false);
+    const { darkMode } = useContext(DarkModeContext);
+
 
     useEffect(() => {
 
@@ -24,16 +26,7 @@ function HotspotListScreen() {
             setLocation(currentLocation.coords);
         };
 
-        const fetchDarkMode = async () => {
-            try {
-                const value = await AsyncStorage.getItem('darkMode');
-                if (value !== null) {
-                    setDarkMode(value === 'true');
-                }
-            } catch (e) {
-                console.error('Fout bij laden van dark mode', e);
-            }
-        };
+
 
 
         const hotspotArray = Object.entries(pokehotspots.gyms).map(([key, value]) => ({
@@ -43,7 +36,7 @@ function HotspotListScreen() {
         setHotspots(hotspotArray);
 
         fetchLocation();
-        fetchDarkMode()
+
     }, []);
 
     const openGoogleMaps = (lat, lon) => {

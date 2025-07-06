@@ -6,6 +6,8 @@ import { useNavigation } from '@react-navigation/native';
 import { getDistance } from 'geolib';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import pokehotspots from '../pokehotspots.json';
+import { useContext } from 'react';
+import { DarkModeContext } from '../DarkModeContext';
 
 const darkMapStyle = [
     { "elementType": "geometry", "stylers": [{ "color": "#242f3e" }] },
@@ -34,19 +36,12 @@ function Gymleaders_map() {
     const [history, setHistory] = useState([]);
     const [gymleaders, setGymleaders] = useState([]);
     const [visitedGyms, setVisitedGyms] = useState([]);
-    const [darkMode, setDarkMode] = useState(false);
     const navigation = useNavigation();
     const mapRef = useRef(null);
+    const { darkMode } = useContext(DarkModeContext);
+
 
     useEffect(() => {
-        const loadDarkMode = async () => {
-            try {
-                const value = await AsyncStorage.getItem('darkMode');
-                setDarkMode(value === 'true');
-            } catch (e) {
-                console.error('Fout bij laden dark mode', e);
-            }
-        };
 
         const gymArray = Object.entries(pokehotspots.gyms).map(([key, gym]) => ({
             id: key,
@@ -105,8 +100,6 @@ function Gymleaders_map() {
                 }
             );
         };
-
-        loadDarkMode();
         getCurrentLocation();
     }, []);
 

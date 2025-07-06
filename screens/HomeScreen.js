@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import {
     StyleSheet,
     Text,
@@ -12,14 +12,15 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import pokemonData from '../pokehotspots.json';
 import NavBar from "../components/NavBar";
+import { DarkModeContext } from '../DarkModeContext';
 
 function HomeScreen() {
     const navigation = useNavigation();
     const [pokemons, setPokemons] = useState([]);
     const [favorites, setFavorites] = useState({});
-    const [darkMode, setDarkMode] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
     const PAGE_SIZE = 50;
+    const { darkMode } = useContext(DarkModeContext);
 
     useEffect(() => {
         const formattedPokemons = pokemonData.pokemon_entries.map((entry) => ({
@@ -33,7 +34,6 @@ function HomeScreen() {
         }));
         setPokemons(formattedPokemons);
         loadFavorites();
-        loadDarkMode();
     }, []);
 
     const loadFavorites = async () => {
@@ -44,27 +44,6 @@ function HomeScreen() {
             }
         } catch (e) {
             console.error('Fout bij laden favorieten', e);
-        }
-    };
-
-    const loadDarkMode = async () => {
-        try {
-            const value = await AsyncStorage.getItem('darkMode');
-            if (value !== null) {
-                setDarkMode(value === 'true');
-            }
-        } catch (e) {
-            console.error('Fout bij laden dark mode', e);
-        }
-    };
-
-    const toggleDarkMode = async () => {
-        try {
-            const newValue = !darkMode;
-            setDarkMode(newValue);
-            await AsyncStorage.setItem('darkMode', newValue.toString());
-        } catch (e) {
-            console.error('Fout bij opslaan dark mode', e);
         }
     };
 
@@ -86,7 +65,7 @@ function HomeScreen() {
 
                 <Pressable
                     style={styles.pressableContainer}
-                    onPress={() => navigation.navigate('DetailsPokemon', { item, darkMode })}
+                    onPress={() => navigation.navigate('DetailsPokemon', { item })}
                 >
                     <Image source={{ uri: item.image }} style={styles.image} />
                     <Text style={[styles.name, darkMode && styles.textDark]}>{item.name}</Text>
@@ -123,16 +102,6 @@ function HomeScreen() {
         <View style={[styles.container, darkMode && styles.containerDark]}>
             <NavBar darkMode={darkMode} />
 
-            <Pressable
-                style={[styles.toggleButton, darkMode ? styles.darkToggle : styles.lightToggle]}
-                onPress={toggleDarkMode}
-            >
-                <Text style={styles.toggleText}>
-                    {darkMode ? 'Dark Mode Aan' : 'Dark Mode Uit'}
-                </Text>
-            </Pressable>
-
-            {/* Pagination buttons above the list */}
             <View style={styles.paginationContainer}>
                 <TouchableOpacity
                     onPress={prevPage}
@@ -204,45 +173,12 @@ const styles = StyleSheet.create({
         height: 60,
         resizeMode: 'contain',
     },
-    textContainer: {
-        marginLeft: 16,
-    },
     name: {
         fontSize: 16,
         color: '#000',
     },
-    text: {
-        color: '#000',
-    },
     textDark: {
         color: '#fff',
-    },
-    detailButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'red',
-        padding: 10,
-        borderRadius: 10,
-        flex: 1,
-    },
-    detailButtonDark: {
-        backgroundColor: '#880000',
-    },
-    toggleButton: {
-        padding: 10,
-        borderRadius: 10,
-        marginBottom: 10,
-    },
-    lightToggle: {
-        backgroundColor: '#ddd',
-    },
-    darkToggle: {
-        backgroundColor: '#333',
-    },
-    toggleText: {
-        color: '#fff',
-        fontWeight: 'bold',
-        textAlign: 'center',
     },
     favoriteButton: {
         padding: 10,
@@ -256,8 +192,6 @@ const styles = StyleSheet.create({
     heartNotFavorite: {
         color: 'gray',
     },
-
-    // Pagination styles
     paginationContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -289,6 +223,5 @@ const styles = StyleSheet.create({
         width: '100%',
     },
 });
-
 
 export default HomeScreen;

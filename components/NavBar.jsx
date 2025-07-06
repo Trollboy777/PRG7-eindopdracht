@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Pressable, Text } from 'react-native';
+import {View, StyleSheet, Pressable, Text} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 export default function NavBar({ darkMode }) {
@@ -15,6 +15,9 @@ export default function NavBar({ darkMode }) {
             </Pressable>
             <Pressable onPress={() => navigation.navigate('HotSpotList')}>
                 <Text style={[styles.link, darkMode && styles.linkDark]}>Hotspots</Text>
+            </Pressable>
+            <Pressable onPress={() => navigation.navigate('Settings')}>
+                <Text style={[styles.link, darkMode && styles.linkDark]}>Instellingen</Text>
             </Pressable>
         </View>
     );

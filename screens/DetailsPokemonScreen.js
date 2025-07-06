@@ -1,10 +1,12 @@
-import React from 'react';
-import {Text, View, StyleSheet, Image, Button, ScrollView} from 'react-native';
+import React, { useContext } from 'react';
+import { Text, View, StyleSheet, Image, Button, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { DarkModeContext } from '../DarkModeContext';
 
-function DetailsPokemonScreen({route}) {
-    const {item,darkMode} = route.params;
+function DetailsPokemonScreen({ route }) {
+    const { item } = route.params;
     const navigation = useNavigation();
+    const { darkMode } = useContext(DarkModeContext);
 
     return (
         <ScrollView contentContainerStyle={[styles.container, darkMode && styles.containerDark]}>
